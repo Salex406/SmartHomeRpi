@@ -1,11 +1,20 @@
 """
+СОСТОЯНИЕ: 25.02.20 ПРОТЕСТИТЬ
+
 Программа мониторит изменения в бд для устройств d. При изменении(вкл или выкл)
-вызывается программа отправки команды по UDP, затем делается запись в соответствующий s
+вызывается программа отправки команды по UDP, затем делается запись 3 в соответствующий d
+
+Формат:
+DC:0E:A1:4A:C5:DE#d*1
 """
 
 import pyrebase
 import time
 import datetime
+import socket
+
+UDP_IP = "255.255.255.255"
+UDP_PORT = 1113
 
 config = {
   "apiKey": "apiKey",
@@ -63,13 +72,7 @@ s_co2-_1
 s_watr_
 
 """
-#allk = db.child("users").child(uid[0]).child('кухня').child('s_temp_0').get()
-#for sth in allk.each():
-#	print(sth.key())
-#	print(sth.val())
 
-#print(allk.key())
-#print(allk.val())
 	
 def stream_handler(message):
 	#print(message["event"]) # put
@@ -79,15 +82,18 @@ def stream_handler(message):
 		#one time for each launch
 		if LStatus:
 			print(str(datetime.datetime.now()) +' Connected to database')
+	elif path.find("d") == -1:
+		if LStatus:
+			print(str(datetime.datetime.now()) +'no d error')
 	else:
 		#print(message["event"])
-		#print(message["path"])
+		print(message["path"])
 		
 		s_path = path.split('/')
 		room = s_path[1]
 		device = s_path[2]
 		#print(room)
-		#print(device)
+		print(device)
 		#print(message["data"])
 		
 		#only
@@ -96,21 +102,32 @@ def stream_handler(message):
 			macword = 'm' + device[1:]
 			#print(macword)
 			db1 = db.child("users").child(uid[0]).child(room).child(macword).get()
+			val = db.child("users").child(uid[0]).child(room).child(device).get()
 			mac = db1.val()
-			#print("MAC of device: " ,mac)
+			value = val.val()
+			if LStatus:
+				print(str(datetime.datetime.now()))
+				print("MAC of device: " ,mac)
+				print("Device: " + device)
+				print("Action: " + str(value))
 			
-			#ПЛАН вызов функции отправки широковещ удп. Фильтр мак на конечных устройствах
-			#возврат записи бд в третье состояние
-		
-		#print(len(device)) 8 for all d-s
-		
-    #print(message["data"]["QcGrz5YYZbSZRKBNP6U1xXy4l9q2"].keys()) # {'title': 'Pyrebase', "body": "etc..."}
-	#for room in message["data"].keys():
-	#	print("room:",room)
-#		for room in message["data"][uid].keys():
-#			print("--", room)
-#			for dev in message["data"][uid][room].keys():
-#				print("---", dev)
-
-#my_stream = db.child("users").child(uid[0]).stream(stream_handler)
+			msg = mac + "#d*" + str(value)
+			Zval = 3
+			b = firebase.database().child("users").child(uid[0])
+			b.child(room).update({device: Zval})
+			#print(msg)
+			try:
+				sock.sendto(msg.encode(), (UDP_IP, UDP_PORT))
+			except socket.timeout:
+				if LStatus:
+					print(str(datetime.datetime.now()) + " Socket timeout error")
+				pass
+			except socket.error:
+				if LStatus:
+					print(str(datetime.datetime.now()) + " Socket error")
+				pass
 my_stream = db.child("users").child(uid[0]).stream(stream_handler)
+
+sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

@@ -1,6 +1,8 @@
 """
 СОСТОЯНИЕ: 8.02.20 ГОТОВ
 
+25.02.20 правка для учета строки планировщика
+
 работает с firestore и отвечает за поддержку истории показаний устройств
 
 автоматически сдвигяются на час предыдущие показания во всех комнатах
@@ -85,7 +87,7 @@ doc_ref.set({
 	u'0': u'',
 })
 if LStatus:
-	print(str(datetime.datetime.now()) + "Started")
+	print(str(datetime.datetime.now()) + " Started")
 	print("Current uid: ",uid[0])
 
 def upd_firestore():
@@ -124,32 +126,33 @@ def upd_firestore():
 	for doc in docs:
 		##print(u'{} => {}'.format(doc.id, doc.to_dict()))
 		#print(doc.id)
-		dic = doc.to_dict()
-		for key in dic:
-			if key == "0":
-				Dict["1"] = dic[key]
-				#Dict["0"] = "new"
-				try:
-					Dict["0"] = Strings_to_write[doc.id]
-				except KeyError:
-					Dict["0"] = ""
-					print("Mismatching data ERROR!")
-				#print(0,"old->",dic[str(0)])
-				#print(1,"old->",dic[str(1)])
-				#print(0,"new->",Dict[str(0)])
-				#print(1,"new->",Dict[str(1)])
-			elif key == "7":
-				#print("7")
-				pass
-			else:
-				new_key = str(int(key)+1)
-				Dict[new_key] = dic[key]
-				#print(new_key,"new->",Dict[new_key])
-				#print(new_key,"->",Dict[new_key])
-		#print(doc.id) #room name current
-		db.collection(u'uid').document(doc.id).set(Dict)
+		if doc.id[0] != 't':
+			dic = doc.to_dict()
+			for key in dic:
+				if key == "0":
+					Dict["1"] = dic[key]
+					#Dict["0"] = "new"
+					try:
+						Dict["0"] = Strings_to_write[doc.id]
+					except KeyError:
+						Dict["0"] = ""
+						print("Mismatching data ERROR!")
+					#print(0,"old->",dic[str(0)])
+					#print(1,"old->",dic[str(1)])
+					#print(0,"new->",Dict[str(0)])
+					#print(1,"new->",Dict[str(1)])
+				elif key == "7":
+					#print("7")
+					pass
+				else:
+					new_key = str(int(key)+1)
+					Dict[new_key] = dic[key]
+					#print(new_key,"new->",Dict[new_key])
+					#print(new_key,"->",Dict[new_key])
+			#print(doc.id) #room name current
+			db.collection(u'uid').document(doc.id).set(Dict)
 	
-scheduler.add_job(upd_firestore, 'interval', minutes=1, id='upd_firestore',  replace_existing=True)
+scheduler.add_job(upd_firestore, 'interval', seconds=15, id='upd_firestore',  replace_existing=True)
 
 while 1:
     time.sleep(10)
