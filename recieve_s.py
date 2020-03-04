@@ -41,7 +41,7 @@ with open(logEnabled_file) as lfile_handler:
 		LogStatus = lfile_handler.read(1)
 		LStatus = bool(int(LogStatus))	
 	
-UDP_PORT_RECIEVE =1234 #1112
+UDP_PORT_RECIEVE =1112 #1112
 UDP_IP_RECIEVE = ""
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP recieve

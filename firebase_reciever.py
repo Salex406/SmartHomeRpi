@@ -11,10 +11,8 @@ DC:0E:A1:4A:C5:DE#d*1
 import pyrebase
 import time
 import datetime
-import socket
+import udp_send
 
-UDP_IP = "255.255.255.255"
-UDP_PORT = 1113
 
 config = {
   "apiKey": "apiKey",
@@ -116,18 +114,7 @@ def stream_handler(message):
 			b = firebase.database().child("users").child(uid[0])
 			b.child(room).update({device: Zval})
 			#print(msg)
-			try:
-				sock.sendto(msg.encode(), (UDP_IP, UDP_PORT))
-			except socket.timeout:
-				if LStatus:
-					print(str(datetime.datetime.now()) + " Socket timeout error")
-				pass
-			except socket.error:
-				if LStatus:
-					print(str(datetime.datetime.now()) + " Socket error")
-				pass
-my_stream = db.child("users").child(uid[0]).stream(stream_handler)
+			udp_send.send(msg)
+	
 
-sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+my_stream = db.child("users").child(uid[0]).stream(stream_handler)
