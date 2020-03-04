@@ -84,8 +84,6 @@ def decode(stri):
 				f.write(val + "\n")
 				f.write("n")
 			
-			
-			
 			#notify
 		else:
 			log("use device")
@@ -108,6 +106,26 @@ def decode(stri):
 			pass
 	elif stri[1] == "t":
 		log("Detected timing case")
+		start_val = 3
+		stop_val = stri.find("*", start_val)
+		hour = stri[start_val:stop_val]
+		
+		start_val = stop_val + 1
+		stop_val = stri.find("*", start_val)
+		minute = stri[start_val:stop_val]
+		log(hour)
+		log(minute)
+		start_val = stri.find("*", stop_val + 1)
+		stop_val = stri.find("*", start_val + 1)
+		mac = stri[start_val + 1:stop_val]
+		action = stri[stop_val + 1]
+		log(mac)
+		log(action)
+		with open(task_t_file, "w") as f:
+				f.write(mac + "\n")
+				f.write(comparation + "\n")
+				f.write(val + "\n")
+				f.write("n")
 	else:
 		log("Task is incorrect")
 		
